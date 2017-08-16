@@ -64,7 +64,6 @@ class Client:
             "side": side,
             "type": ord_type
         }
-        print(payload)
 
         signed_payload = self._sign_payload(payload)
         r = requests.post(self.URL + "/order/new", headers=signed_payload, verify=True)
@@ -127,6 +126,37 @@ class Client:
 
         return json_resp
 
+    def withdraw(self, withdraw_type, wallet_selected, amount, address, payment_id=None):
+        """
+        withdrawal
+
+        :param withdraw_type:
+        :param wallet_selected:
+        :param amount:
+        :param address:
+        :param payment_id:
+        :return:
+        """
+        assert withdraw_type in ['bitcoin', 'litecoin', 'ethereum', 'ethereumc', 'mastercoin', 'zcash', 'monero',
+                                 'wire', 'dash', 'ripple', 'eos']
+        assert wallet_selected in ['trading', 'exchange', 'deposit']
+
+        payload = {
+            'request': '/v1/withdraw',
+            'withdraw_type': withdraw_type,
+            'walletselected': wallet_selected,
+            'amount': str(Decimal(amount)),
+            'address': address,
+            'payment_id': payment_id,
+            'nonce': self._nonce
+        }
+
+        signed_payload = self._sign_payload(payload=payload)
+        r = requests.post(f'{self.URL}/withdraw', headers=signed_payload, verify=True)
+        json_resp = r.json()
+
+        return json_resp
+
 
 if __name__ == '__main__':
     client = Client(key=config.BITFINEX_API_KEY, secret=config.BITFINEX_SECRET_API_KEY)
@@ -135,3 +165,5 @@ if __name__ == '__main__':
     # pprint.pprint(client.account_fees())
     # # pprint.pprint(
     # #     client.place_order(amount=4.99, price=0.1527, side='sell', ord_type='exchange limit', symbol='xrpusd'))
+    pprint.pprint(
+        client.withdraw('ripple', 'exchange', 25, 'rp2diYfVtpbgEMyaoWnuaWgFCAkqCAEg28', payment_id='974316854'))
