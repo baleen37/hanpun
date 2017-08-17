@@ -66,7 +66,7 @@ class Client:
         }
 
         signed_payload = self._sign_payload(payload)
-        r = requests.post(self.URL + "/order/new", headers=signed_payload, verify=True)
+        r = requests.post(self.URL + "/order/new", headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
 
         try:
@@ -87,7 +87,7 @@ class Client:
             'nonce': self._nonce
         }
         signed_payload = self._sign_payload(payload=payload)
-        r = requests.post(f'{self.URL}/order/cancel/all', headers=signed_payload, verify=True)
+        r = requests.post(f'{self.URL}/order/cancel/all', headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
 
         return json_resp
@@ -104,7 +104,7 @@ class Client:
         }
 
         signed_payload = self._sign_payload(payload=payload)
-        r = requests.post(f'{self.URL}/balances', headers=signed_payload, verify=True)
+        r = requests.post(f'{self.URL}/balances', headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
 
         return json_resp
@@ -121,7 +121,7 @@ class Client:
         }
 
         signed_payload = self._sign_payload(payload=payload)
-        r = requests.post(f'{self.URL}/account_fees', headers=signed_payload, verify=True)
+        r = requests.post(f'{self.URL}/account_fees', headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
 
         return json_resp
@@ -152,7 +152,7 @@ class Client:
         }
 
         signed_payload = self._sign_payload(payload=payload)
-        r = requests.post(f'{self.URL}/withdraw', headers=signed_payload, verify=True)
+        r = requests.post(f'{self.URL}/withdraw', headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
 
         return json_resp
@@ -160,7 +160,7 @@ class Client:
     def ticker(self, currency):
         assert currency
 
-        r = requests.get(f'{self.URL}/pubticker/{currency}', verify=True)
+        r = requests.get(f'{self.URL}/pubticker/{currency}', verify=True, timeout=10)
         json_resp = r.json()
 
         return json_resp

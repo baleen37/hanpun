@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from mangus import config
+from mangus import config, const
 from mangus.models.base import Base
 from mangus.models.exchange import ExchangeMarket
 
@@ -31,9 +31,9 @@ def drop_db():
 
 def insert_initial_values(*args, **kwargs):
     print(f'insert_initial_values')
-    db_session.add(ExchangeMarket(name='bitfinex'))
-    db_session.add(ExchangeMarket(name='bithumb'))
-    db_session.add(ExchangeMarket(name='coinone'))
+    db_session.add(ExchangeMarket(name=const.BITFINEX))
+    db_session.add(ExchangeMarket(name=const.BITHUMB))
+    db_session.add(ExchangeMarket(name=const.COINONE))
     db_session.commit()
 
 

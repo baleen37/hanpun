@@ -67,7 +67,7 @@ class Client:
             'endpoint': endpoint,
         }
         signed_payload = self._sign_payload(payload)
-        r = requests.post(self.URL + endpoint, headers=signed_payload, verify=True)
+        r = requests.post(self.URL + endpoint, headers=signed_payload, verify=True, timeout=10)
         json_resp = r.json()
         return json_resp
 

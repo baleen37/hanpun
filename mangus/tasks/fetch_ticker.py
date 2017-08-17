@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from mangus import config, const
@@ -36,9 +37,9 @@ def bithumb_ticker():
     ticker = Ticker(
         exchange_market=market,
         symbol=CurrencySymbol.XRP,
-        bid=int(json['data']['buy_price']) / YahooClient.usd_krw_exchange_rate(),
-        ask=int(json['data']['sell_price']) / YahooClient.usd_krw_exchange_rate(),
-        last_price=int(json['data']['closing_price']) / YahooClient.usd_krw_exchange_rate()
+        bid=float(json['data']['buy_price']) / YahooClient.usd_krw_exchange_rate(),
+        ask=float(json['data']['sell_price']) / YahooClient.usd_krw_exchange_rate(),
+        last_price=float(json['data']['closing_price']) / YahooClient.usd_krw_exchange_rate()
     )
     db_session.add(ticker)
     db_session.commit()
@@ -46,6 +47,7 @@ def bithumb_ticker():
 
 if __name__ == '__main__':
     while True:
+        print(f'tick... {datetime.datetime.now()}')
         bithumb_ticker()
         bitfinex_ticker()
-        time.sleep(10)
+        time.sleep(0.5)
