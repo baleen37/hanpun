@@ -157,13 +157,22 @@ class Client:
 
         return json_resp
 
+    def ticker(self, currency):
+        assert currency
+
+        r = requests.get(f'{self.URL}/pubticker/{currency}', verify=True)
+        json_resp = r.json()
+
+        return json_resp
+
 
 if __name__ == '__main__':
-    client = Client(key=config.BITFINEX_API_KEY, secret=config.BITFINEX_SECRET_API_KEY)
+    client = Client(key=config.BITFINEX.API_KEY, secret=config.BITFINEX.SECRET_API_KEY)
+    pprint.pprint(client.ticker('xrpusd'))
     # # pprint.pprint(client.balances())
-    # # pprint.pprint(client.cancel_all_orders())
+    # pprint.pprint(client.cancel_all_orders())
     # pprint.pprint(client.account_fees())
     # # pprint.pprint(
     # #     client.place_order(amount=4.99, price=0.1527, side='sell', ord_type='exchange limit', symbol='xrpusd'))
-    pprint.pprint(
-        client.withdraw('ripple', 'exchange', 25, 'rp2diYfVtpbgEMyaoWnuaWgFCAkqCAEg28', payment_id='974316854'))
+    # pprint.pprint(
+    #     client.withdraw('ripple', 'exchange', 25, 'rp2diYfVtpbgEMyaoWnuaWgFCAkqCAEg28', payment_id='974316854'))
