@@ -1,17 +1,14 @@
 import base64
 import hashlib
 import hmac
-import json
+import math
 import pprint
-
 import time
 import urllib
 
-import math
 import requests
 
 from mangus import config
-from mangus.models.ticker import Ticker, CurrencySymbol
 
 PROTOCOL = 'https'
 HOST = 'api.bithumb.com'
@@ -33,43 +30,33 @@ class Client:
             else:
                 return '%f %d' % math.modf(time.time())
 
-        def usecTime():
-            mt = microtime(False)
-            mt_array = mt.split(" ")[:2];
-            return mt_array[1] + mt_array[0][2:5];
-
-        return usecTime()
+        mt = microtime(False)
+        mt_array = mt.split(" ")[:2]
+        return mt_array[1] + mt_array[0][2:5]
 
     def _sign_payload(self, payload):
-        str_data = urllib.parse.urlencode(payload)
-
+        e_uri_data = urllib.parse.urlencode(payload)
         nonce = self._nonce
+        hmac_data = payload['endpoint'] + chr(0) + e_uri_data + chr(0) + nonce
 
-        data = payload['endpoint'] + chr(0) + str_data + chr(0) + nonce
-
-        j = json.dumps(payload)
-        # data = base64.standard_b64encode(j.encode('utf8'))
-
-        h = hmac.new(self.SECRET.encode('utf8'), data.encode('utf-8'), hashlib.sha512)
-        signature = h.hexdigest()
+        hmh = hmac.new(bytes(self.SECRET.encode('utf-8')), hmac_data.encode('utf-8'), hashlib.sha512)
+        signature = hmh.hexdigest()
+        api_sign = base64.b64encode(signature.encode('utf-8'))
         return {
-            'Content-type': 'application/json',
-            "Api-Key": signature,
-            "Api-Sign": data,
-            'Api-Nonce': str(self._nonce)
+            "Api-Key": self.KEY,
+            "Api-Sign": api_sign,
+            'Api-Nonce': nonce
         }
 
     def balances(self):
         endpoint = '/info/balance'
         payload = {
-            'nonce': self._nonce,
-            'access_token': self.KEY,
-            'endpoint': endpoint,
+            "endpoint": endpoint
         }
-        signed_payload = self._sign_payload(payload)
-        r = requests.post(self.URL + endpoint, headers=signed_payload, verify=True, timeout=10)
-        json_resp = r.json()
-        return json_resp
+
+        url = self.URL + endpoint
+        r = requests.post(url, data=payload, headers=self._sign_payload(payload))
+        return r.json()
 
     def ticker(self, currency):
         """
@@ -96,12 +83,4 @@ class Client:
 
 if __name__ == '__main__':
     client = Client(key=config.BITTHUMB.API_KEY, secret=config.BITTHUMB.SECRET_API_KEY)
-    # pprint.pprint(client.balances())
-    json = client.ticker('xrp')
-    ticker = Ticker(
-        symbol=CurrencySymbol.XRP,
-        bid=json['data']['buy_price'],
-        ask=json['data']['sell_price'],
-        last_price=json['data']['closing_price']
-    )
-    print(ticker)
+    pprint.pprint(client.balances())
