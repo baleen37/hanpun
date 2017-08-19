@@ -22,7 +22,7 @@ class WithdrawalFee(Base):
     min_amount = Column(Float, nullable=False, default=0)
     created_at = Column(TZDateTime, nullable=False, server_default=func.now())
 
-    exchange = relationship('ExchangeMarket', backref=backref('withdrawal_fees'))
+    exchange = relationship('ExchangeMarket', backref=backref('withdrawal_fees', lazy='dynamic'))
 
 
 class TradeFee(Base):
@@ -41,7 +41,7 @@ class TradeFee(Base):
     min_amount = Column(Float, nullable=False, default=0)
     created_at = Column(TZDateTime, nullable=False, server_default=func.now())
 
-    exchange = relationship('ExchangeMarket', backref=backref('trade_fees'))
+    exchange = relationship('ExchangeMarket', backref=backref('trade_fees', lazy='dynamic'))
 
 
 class ExchangeMarketBalance(Base):

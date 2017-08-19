@@ -1,0 +1,2 @@
+class MangusError(Exception):
+    pass
