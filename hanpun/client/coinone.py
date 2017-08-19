@@ -8,7 +8,7 @@ import time
 
 import requests
 
-from mangus import config
+from hanpun import config
 
 PROTOCOL = 'https'
 HOST = 'api.coinone.co.kr'

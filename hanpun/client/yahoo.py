@@ -1,6 +1,6 @@
 import requests
 
-from mangus.common.memorycache import MWT
+from hanpun.common.memorycache import MWT
 
 
 class YahooClient:

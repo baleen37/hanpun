@@ -1,2 +1,2 @@
-class MangusError(Exception):
+class HanpunError(Exception):
     pass

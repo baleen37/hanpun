@@ -1,13 +1,13 @@
 import datetime
 import time
 
-from mangus import config, const
-from mangus.client.bithumb import Client as BithumbClient
-from mangus.client.bitfinex import Client as BitfinexClient
-from mangus.client.yahoo import YahooClient
-from mangus.models.exchange import ExchangeMarket
-from mangus.models.ticker import Ticker, CurrencySymbol
-from mangus.storage import db_session
+from hanpun import config, const
+from hanpun.client.bithumb import Client as BithumbClient
+from hanpun.client.bitfinex import Client as BitfinexClient
+from hanpun.client.yahoo import YahooClient
+from hanpun.models.exchange import ExchangeMarket
+from hanpun.models.ticker import Ticker, CurrencySymbol
+from hanpun.storage import db_session
 
 
 def bitfinex_ticker():

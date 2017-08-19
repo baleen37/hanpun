@@ -1,6 +1,6 @@
 from manager import Manager
 
-from mangus import storage
+from hanpun import storage
 
 manage = Manager()
 

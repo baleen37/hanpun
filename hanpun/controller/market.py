@@ -1,7 +1,7 @@
-from mangus import const
-from mangus.controller.base import BaseController
-from mangus.exc import MangusError
-from mangus.models.exchange import ExchangeMarket
+from hanpun import const
+from hanpun.controller.base import BaseController
+from hanpun.exc import HanpunError
+from hanpun.models.exchange import ExchangeMarket
 
 
 class MarketController(BaseController):
@@ -24,6 +24,6 @@ class MarketController(BaseController):
         market = self.db_session.query(ExchangeMarket).filter(ExchangeMarket.name == name).first()
 
         if not market:
-            raise MangusError('market is none')
+            raise HanpunError('market is none')
 
         return market

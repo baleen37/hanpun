@@ -1,9 +1,9 @@
 from sqlalchemy import Column, func, Integer, String, ForeignKey, Enum, Float, UniqueConstraint
 from sqlalchemy.orm import relationship, backref
 
-from mangus.common.datetime import TZDateTime
-from mangus.models.base import Base
-from mangus.models.ticker import CurrencySymbol
+from hanpun.common.datetime import TZDateTime
+from hanpun.models.base import Base
+from hanpun.models.ticker import CurrencySymbol
 
 
 class WithdrawalFee(Base):

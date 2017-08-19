@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from mangus import config, const
-from mangus.models.base import Base
-from mangus.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
-from mangus.models.ticker import CurrencySymbol
+from hanpun import config, const
+from hanpun.models.base import Base
+from hanpun.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
+from hanpun.models.ticker import CurrencySymbol
 
 engine = create_engine(config.DB_URL)
 
@@ -13,9 +13,9 @@ db_session = scoped_session(sessionmaker(bind=engine))
 
 def import_modules():
     import importlib
-    from mangus import models
+    from hanpun import models
     for m in models.__all__:
-        importlib.import_module('mangus.models.' + m, __name__)
+        importlib.import_module('hanpun.models.' + m, __name__)
         print(m)
 
 

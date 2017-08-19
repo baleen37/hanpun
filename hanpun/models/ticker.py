@@ -4,8 +4,8 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.sql.sqltypes import INTEGER, Integer, Date, Enum
 
-from mangus.common.datetime import TZDateTime
-from mangus.models.base import Base
+from hanpun.common.datetime import TZDateTime
+from hanpun.models.base import Base
 
 
 class CurrencySymbol(enum.Enum):

@@ -8,8 +8,8 @@ import urllib
 
 import requests
 
-from mangus import config
-from mangus.models.ticker import CurrencySymbol
+from hanpun import config
+from hanpun.models.ticker import CurrencySymbol
 
 PROTOCOL = 'https'
 HOST = 'api.bithumb.com'

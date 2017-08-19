@@ -1,11 +1,11 @@
 import datetime
 from pprint import pprint
 
-from mangus.controller.market import MarketController
-from mangus.exc import MangusError
-from mangus.models.exchange import TradeFee, WithdrawalFee
-from mangus.models.ticker import Ticker
-from mangus.storage import db_session
+from hanpun.controller.market import MarketController
+from hanpun.exc import HanpunError
+from hanpun.models.exchange import TradeFee, WithdrawalFee
+from hanpun.models.ticker import Ticker
+from hanpun.storage import db_session
 
 
 # r u trush market_price?
@@ -20,7 +20,7 @@ def check_market_price(tickers):
         error_range = abs(last_price - t.last_price)
         error_range_perc = error_range / last_price * 100
         if error_range_perc >= ALLOWED_ERROR_RANGE_PER:
-            raise MangusError(f'error_range {error_range_perc}')
+            raise HanpunError(f'error_range {error_range_perc}')
 
     return tickers[0]
 
@@ -60,7 +60,7 @@ def calc():
         low_ask_ticker = ticker if low_ask_ticker is None or ticker.last_price < low_ask_ticker.last_price else low_ask_ticker
         high_bid_ticker = ticker if high_bid_ticker is None or ticker.last_price > high_bid_ticker.last_price else high_bid_ticker
 
-    amount = 10000
+    amount = 100
     print(f'low_ticker {low_ask_ticker.last_price} {low_ask_ticker.exchange_market.name}')
     print(f'high_ticker {high_bid_ticker.last_price} {high_bid_ticker.exchange_market.name}')
     profit_per_unit = high_bid_ticker.bid - low_ask_ticker.ask
