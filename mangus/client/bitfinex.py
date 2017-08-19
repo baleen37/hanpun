@@ -165,14 +165,30 @@ class Client:
 
         return json_resp
 
+    def order_status(self, order_id):
+        assert order_id, 'order_id is none'
+
+        payload = {
+            'request': '/v1/order/status',
+            'order_id': order_id,
+            'nonce': self._nonce
+        }
+
+        signed_payload = self._sign_payload(payload=payload)
+        r = requests.post(f'{self.URL}/order/status', headers=signed_payload, verify=True, timeout=10)
+        json_resp = r.json()
+
+        return json_resp
+
 
 if __name__ == '__main__':
     client = Client(key=config.BITFINEX.API_KEY, secret=config.BITFINEX.SECRET_API_KEY)
-    pprint.pprint(client.ticker('xrpusd'))
+    # pprint.pprint(client.ticker('xrpusd'))
     # # pprint.pprint(client.balances())
     # pprint.pprint(client.cancel_all_orders())
     # pprint.pprint(client.account_fees())
     # # pprint.pprint(
     # #     client.place_order(amount=4.99, price=0.1527, side='sell', ord_type='exchange limit', symbol='xrpusd'))
-    # pprint.pprint(
-    #     client.withdraw('ripple', 'exchange', 25, 'rp2diYfVtpbgEMyaoWnuaWgFCAkqCAEg28', payment_id='974316854'))
+    pprint.pprint(
+        client.withdraw('ripple', 'exchange', 25, address=config.BITHUMB.XRP_ADDRESS,
+                        payment_id=config.BITHUMB.XRP_DESTINATION_TAG))

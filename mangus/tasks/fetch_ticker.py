@@ -11,7 +11,7 @@ from mangus.storage import db_session
 
 
 def bitfinex_ticker():
-    bitfinex = BitfinexClient(key=config.BITFINEX.API_KEY, secret=config.BITTHUMB.SECRET_API_KEY)
+    bitfinex = BitfinexClient(key=config.BITFINEX.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
     json = bitfinex.ticker('xrpusd')
 
     market = (db_session.query(ExchangeMarket)
@@ -29,8 +29,8 @@ def bitfinex_ticker():
 
 
 def bithumb_ticker():
-    bithumb = BithumbClient(key=config.BITTHUMB.API_KEY, secret=config.BITTHUMB.SECRET_API_KEY)
-    json = bithumb.ticker('xrp')
+    bithumb = BithumbClient(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
+    json = bithumb.ticker(CurrencySymbol.XRP)
     market = (db_session.query(ExchangeMarket)
               .filter(ExchangeMarket.name == const.BITHUMB)
               .first())
@@ -48,6 +48,12 @@ def bithumb_ticker():
 if __name__ == '__main__':
     while True:
         print(f'tick... {datetime.datetime.now()}')
-        bithumb_ticker()
-        bitfinex_ticker()
-        time.sleep(0.5)
+        try:
+            bithumb_ticker()
+        except Exception as e:
+            print(e)
+        try:
+            bitfinex_ticker()
+        except Exception as e:
+            print(e)
+        time.sleep(0.2)
