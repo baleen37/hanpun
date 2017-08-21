@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from hanpun import config, const
+from hanpun.controller.market import MarketController
 from hanpun.models.base import Base
 from hanpun.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
 from hanpun.models.ticker import CurrencySymbol
@@ -33,16 +34,16 @@ def drop_db():
 
 def exchange_market_initial(*args, **kwargs):
     print(f'exchange_market_initial')
-    db_session.add(ExchangeMarket(name=const.BITFINEX))
-    db_session.add(ExchangeMarket(name=const.BITHUMB))
-    db_session.add(ExchangeMarket(name=const.COINONE))
+    for market in const.MARKETS:
+        db_session.add(ExchangeMarket(name=market))
     db_session.commit()
 
 
 def withdraw_fee_initial(*args, **kwargs):
     print(f'withdraw_fee_initial')
+    mc = MarketController(db_session=db_session)
     # bithumb
-    bithumb = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITHUMB).first()
+    bithumb = mc.get_market(const.BITHUMB)
     bithumb.withdrawal_fees.append(WithdrawalFee(
         symbol=CurrencySymbol.XRP,
         fee=0.01,
@@ -51,7 +52,7 @@ def withdraw_fee_initial(*args, **kwargs):
     db_session.add(bithumb)
 
     # bitfinex
-    bitfinex = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITFINEX).first()
+    bitfinex = mc.get_market(const.BITFINEX)
     bitfinex.withdrawal_fees.append(WithdrawalFee(
         symbol=CurrencySymbol.XRP,
         fee=0.01,
@@ -63,8 +64,9 @@ def withdraw_fee_initial(*args, **kwargs):
 
 def initial_trade_fees(*args, **kwargs):
     print(f'initial_trade_fees')
+    mc = MarketController(db_session=db_session)
     # bithumb
-    bithumb = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITHUMB).first()
+    bithumb = mc.get_market(const.BITHUMB)
     bithumb.trade_fees.append(TradeFee(
         symbol=CurrencySymbol.XRP,
         fee_percent=0.15,
@@ -73,7 +75,7 @@ def initial_trade_fees(*args, **kwargs):
     db_session.add(bithumb)
 
     # bitfinex
-    bitfinex = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITFINEX).first()
+    bitfinex = mc.get_market(const.BITFINEX)
     bitfinex.trade_fees.append(TradeFee(
         symbol=CurrencySymbol.XRP,
         fee_percent=0.15,
@@ -85,8 +87,9 @@ def initial_trade_fees(*args, **kwargs):
 
 def initial_exchange_market_balances(*args, **kwargs):
     print(f'initial_exchange_market_balances')
+    mc = MarketController(db_session=db_session)
     # bithumb
-    bithumb = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITHUMB).first()
+    bithumb = mc.get_market(const.BITHUMB)
     bithumb.balances.append(ExchangeMarketBalance(
         symbol=CurrencySymbol.XRP,
         address=config.BITHUMB.XRP_ADDRESS,
@@ -95,7 +98,7 @@ def initial_exchange_market_balances(*args, **kwargs):
     db_session.add(bithumb)
 
     # bitfinex
-    bitfinex = db_session.query(ExchangeMarket).filter(ExchangeMarket.name == const.BITFINEX).first()
+    bitfinex = mc.get_market(const.BITFINEX)
     bitfinex.balances.append(ExchangeMarketBalance(
         symbol=CurrencySymbol.XRP,
         address=config.BITFINEX.XRP_ADDRESS,
