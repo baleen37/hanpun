@@ -9,7 +9,9 @@ class MarketController(BaseController):
         """
         :return: ExchangeMarket list
         """
-        markets = self.db_session.query(ExchangeMarket).all()
+        markets = self.db_session.query(ExchangeMarket).filter(
+            ExchangeMarket.name.in_(const.AVAILABLE_MARKETS)
+        ).all()
 
         assert len(markets) > 0
 

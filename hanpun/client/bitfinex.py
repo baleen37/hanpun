@@ -10,6 +10,8 @@ import time
 import requests
 
 from hanpun import config
+from hanpun.exc import HanpunError
+from hanpun.models.ticker import CurrencySymbol
 
 PROTOCOL = 'https'
 HOST = 'api.bitfinex.com'
@@ -43,13 +45,13 @@ class Client:
     def _nonce(self):
         return str(time.time() * 1000000)
 
-    def place_order(self, amount, price, side, ord_type, symbol='btcusd', exchange='bitfinex'):
+    def place_order(self, amount, price, side, symbol, ord_type='exchange limit', exchange='bitfinex'):
         """
         Submit a new order.
         :param amount:
         :param price:
         :param side: either 'buy' or 'sell'
-        :param ord_type:
+        :param ord_type: exchange limit
         :param symbol:
         :param exchange:
         :return:
@@ -72,7 +74,7 @@ class Client:
         try:
             json_resp['order_id']
         except:
-            return json_resp['message']
+            raise HanpunError(json_resp.get('message', 'Unknown error'))
 
         return json_resp
 
@@ -126,17 +128,29 @@ class Client:
 
         return json_resp
 
-    def withdraw(self, withdraw_type, wallet_selected, amount, address, payment_id=None):
+    def withdraw(self, symbol, amount, address, payment_id=None, wallet_selected='exchange'):
         """
         withdrawal
 
-        :param withdraw_type:
+        :param symbol:
         :param wallet_selected:
         :param amount:
         :param address:
         :param payment_id:
         :return:
         """
+
+        to_withdraw_type_dict = [
+            (CurrencySymbol.BTC, 'bitcoin'),
+            (CurrencySymbol.ETH, 'ethereum'),
+            (CurrencySymbol.XRP, 'ripple')
+        ]
+
+        withdraw_type = None
+        for _type in to_withdraw_type_dict:
+            if symbol == _type[0]:
+                withdraw_type = _type[1]
+
         assert withdraw_type in ['bitcoin', 'litecoin', 'ethereum', 'ethereumc', 'mastercoin', 'zcash', 'monero',
                                  'wire', 'dash', 'ripple', 'eos']
         assert wallet_selected in ['trading', 'exchange', 'deposit']
@@ -184,11 +198,11 @@ class Client:
 if __name__ == '__main__':
     client = Client(key=config.BITFINEX.API_KEY, secret=config.BITFINEX.SECRET_API_KEY)
     # pprint.pprint(client.ticker('xrpusd'))
-    # # pprint.pprint(client.balances())
+    # pprint.pprint(client.balances())
     # pprint.pprint(client.cancel_all_orders())
-    # pprint.pprint(client.account_fees())
+    pprint.pprint(client.order_status(3480981615))
     # # pprint.pprint(
     # #     client.place_order(amount=4.99, price=0.1527, side='sell', ord_type='exchange limit', symbol='xrpusd'))
-    pprint.pprint(
-        client.withdraw('ripple', 'exchange', 25, address=config.BITHUMB.XRP_ADDRESS,
-                        payment_id=config.BITHUMB.XRP_DESTINATION_TAG))
+    # pprint.pprint(
+    #     client.withdraw('ripple', 'exchange', 25, address=config.BITHUMB.XRP_ADDRESS,
+    #                     payment_id=config.BITHUMB.XRP_DESTINATION_TAG))

@@ -9,6 +9,7 @@ from hanpun.models.base import Base
 
 
 class CurrencySymbol(enum.Enum):
+    USD = 'usd'
     BTC = 'btc'
     ETH = 'eth'
     XRP = 'xrp'

@@ -59,7 +59,7 @@ class ExchangeMarketBalance(Base):
     destination = Column(String, nullable=True)
     created_at = Column(TZDateTime, nullable=False, server_default=func.now())
 
-    exchange = relationship('ExchangeMarket', backref=backref('balances'))
+    exchange = relationship('ExchangeMarket', backref=backref('balances', lazy='dynamic'))
 
 
 class ExchangeMarket(Base):
