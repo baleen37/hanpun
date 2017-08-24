@@ -49,11 +49,10 @@ class Client:
             'Api-Nonce': nonce
         }
 
-    def balances(self, currency: CurrencySymbol):
+    def balances(self):
         endpoint = '/info/balance'
         payload = {
             "endpoint": endpoint,
-            'currency': currency.name
         }
 
         url = self.URL + endpoint
@@ -101,9 +100,9 @@ class Client:
 
         url = self.URL + endpoint
         r = requests.post(url, data=payload, headers=self._sign_payload(payload))
-        return r.json()
+        return r.json()['order_id']
 
-    def new_by_order(self, symbol: CurrencySymbol, amount):
+    def new_buy_order(self, symbol: CurrencySymbol, amount):
         """
         상품 구매
         :param symbol: CurrencySymbol
@@ -112,7 +111,6 @@ class Client:
         :return:
         """
         assert isinstance(symbol, CurrencySymbol)
-        assert amount is float
         endpoint = f'/trade/market_buy'
         payload = {
             "endpoint": endpoint,
@@ -122,7 +120,7 @@ class Client:
 
         url = self.URL + endpoint
         r = requests.post(url, data=payload, headers=self._sign_payload(payload))
-        return r.json()
+        return r.json()['order_id']
 
     def orders(self, symbol: CurrencySymbol, count=1000):
         """
@@ -200,9 +198,9 @@ class Client:
 
 if __name__ == '__main__':
     client = Client(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
-    # pprint.pprint(client.balances(CurrencySymbol.XRP))
-    # pprint.pprint(client.new_order(symbol=CurrencySymbol.XRP, amount=10.0))
-    # pprint.pprint(client.new_sell_order(symbol=CurrencySymbol.XRP, amount=10.0))
+    # pprint.pprint(client.balances())
+    # pprint.pprint(client.new_buy_order(symbol=CurrencySymbol.XRP, amount=10))
+    pprint.pprint(client.new_sell_order(symbol=CurrencySymbol.XRP, amount=10.0))
     # pprint.pprint(client.orders(symbol=CurrencySymbol.XRP))
     # pprint.pprint(client.cancel_order(symbol=CurrencySymbol.XRP, order_id='1503070938067', trade_type='bid'))
     # pprint.pprint(client.cancel_all_orders(symbol=CurrencySymbol.XRP))

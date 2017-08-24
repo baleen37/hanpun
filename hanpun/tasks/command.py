@@ -14,15 +14,16 @@ from hanpun.storage import db_session
 # r u trush market_price?
 
 def check_market_price(tickers):
-    assert len(tickers) > 100, f'ticker count {len(tickers)}'
+    assert len(tickers) > 60, f'ticker count {len(tickers)}'
     last_price = tickers[0].last_price
 
-    ALLOWED_ERROR_RANGE_PER = 0.1
+    ALLOWED_ERROR_RANGE_PER = 5
     for t in tickers:
+        pass
         error_range = abs(last_price - t.last_price)
         error_range_perc = error_range / last_price * 100
         if error_range_perc >= ALLOWED_ERROR_RANGE_PER:
-            raise HanpunError(f'error_range {error_range_perc}')
+            raise HanpunError(f'error_range {error_range}')
 
     return tickers[0]
 
@@ -42,8 +43,8 @@ def calc():
                            Ticker.created_at >= since)
                    .order_by(Ticker.created_at.desc())
                    .all())
-        # tickers 가 100개 이상이 되야지 믿을수 있지.
-        if len(tickers) > 100:
+        # tickers 가 60개 이상이 되야지 믿을수 있지.
+        if len(tickers) > 60:
             ticker_bucket.append(tickers)
 
     # 거래소 믿을수 있는 시장가 구하기
@@ -67,21 +68,22 @@ def calc():
     balance_amount = tc.balance(low_ask_ticker.exchange_market, CurrencySymbol.USD)
     assert balance_amount > 0, 'balances에 돈이 없다 ㅠ'
 
-    buyable_amount = balance_amount / low_ask_ticker.last_price
+    cost_of_buy = round(low_ask_ticker.last_price * 1000) / 1000
+    buyable_amount = balance_amount / cost_of_buy
     print(f'---------------------------------------------------------------------------')
     print(f'low_ticker {low_ask_ticker.last_price} {low_ask_ticker.exchange_market.name}')
     print(f'high_ticker {high_bid_ticker.last_price} {high_bid_ticker.exchange_market.name}')
     profit_per_unit = high_bid_ticker.bid - low_ask_ticker.ask
-    print(f'profit_per_unit {profit_per_unit} {profit_per_unit / low_ask_ticker.last_price * 100}% ')
+    print(f'profit_per_unit {profit_per_unit} {profit_per_unit / cost_of_buy * 100}% ')
     print(f'buy_available_amount {buyable_amount} balance_amount {balance_amount} ')
     print(f'---------------------------------------------------------------------------')
 
     fee_sum = 0
     for ticker in [low_ask_ticker, high_bid_ticker]:
         trade_ob = ticker.exchange_market.trade_fees.filter(TradeFee.symbol == ticker.symbol).first()
-        trade_fee = buyable_amount * ticker.last_price * (trade_ob.fee_percent / 100)
+        trade_fee = buyable_amount * cost_of_buy * (trade_ob.fee_percent / 100)
         withdrawal_ob = ticker.exchange_market.withdrawal_fees.filter(WithdrawalFee.symbol == ticker.symbol).first()
-        withdrawal_fee = ticker.last_price * withdrawal_ob.fee
+        withdrawal_fee = cost_of_buy * withdrawal_ob.fee
 
         print(f'ticker {ticker.exchange_market.name} trade_fee {trade_fee}')
         print(f'ticker {ticker.exchange_market.name} withdrawal_fee {withdrawal_fee}')
@@ -89,7 +91,7 @@ def calc():
         fee_sum += trade_fee + withdrawal_fee
     print(f'total fee : ${fee_sum}')
     estimated_profit_price = (profit_per_unit * buyable_amount) - fee_sum
-    used_money = low_ask_ticker.last_price * buyable_amount
+    used_money = cost_of_buy * buyable_amount
     print(f'estimated profit amount : ${estimated_profit_price} used_money : ${used_money}')
     print(f'profit_per {estimated_profit_price / used_money}%')
 
@@ -99,7 +101,7 @@ def calc():
         # 어마운트를 1로 조정
         exchange_market = low_ask_ticker.exchange_market
         order_id = tc.exchange_buy(exchange_market, symbol=low_ask_ticker.symbol, amount=buyable_amount,
-                                   price=low_ask_ticker.ask)
+                                   price=cost_of_buy)
         for idx in range(10):
             order_status = tc.order_status(exchange_market, order_id)
             print(f'order_status {order_status}')
@@ -123,6 +125,7 @@ def calc():
 
 
 def withdraw(symbol: CurrencySymbol, amount, from_market, to_market):
+    amount = 1
     tc = TradeController(db_session=db_session)
     tc.withdraw(symbol=symbol, amount=amount, from_market=from_market, to_market=to_market)
     print(f'symbol {symbol}, amount {amount}, from_market {from_market} to_market {to_market}')

@@ -3,7 +3,8 @@ import enum
 from sqlalchemy.orm.scoping import ScopedSession
 
 from hanpun import config, const
-from hanpun.client import bitfinex
+from hanpun.client import bitfinex, bithumb
+from hanpun.client.yahoo import YahooClient
 from hanpun.controller.base import BaseController
 from hanpun.exc import HanpunError
 from hanpun.models.exchange import ExchangeMarket
@@ -21,7 +22,7 @@ class TradeController(BaseController):
     def __init__(self, db_session: ScopedSession):
         super().__init__(db_session)
         self.finex = bitfinex.Client(config.BITFINEX.API_KEY, config.BITFINEX.SECRET_API_KEY)
-        self.thumb = bitfinex.Client(config.BITHUMB.API_KEY, config.BITHUMB.SECRET_API_KEY)
+        self.thumb = bithumb.Client(config.BITHUMB.API_KEY, config.BITHUMB.SECRET_API_KEY)
 
     def balance(self, market, symbol: CurrencySymbol):
         """get my balance
@@ -37,10 +38,11 @@ class TradeController(BaseController):
                     return float(item['available'])
         elif market.name == const.BITHUMB:
             json = self.thumb.balances()
-            currency = symbol.value
-            for item in json:
-                if item['currency'] == currency and item['type'] == 'exchange':
-                    return float(item['available'])
+            data = json['data']
+            if symbol == CurrencySymbol.USD:
+                return float(data['total_krw']) / YahooClient.usd_krw_exchange_rate()
+            else:
+                raise NotImplementedError()
         return 0
 
     def exchange_sell(self, market, symbol: CurrencySymbol, amount, price):
@@ -63,7 +65,8 @@ class TradeController(BaseController):
             json = self.finex.place_order(amount=amount, price=price, side='buy', symbol=symbol.value + 'usd')
             return json['id']
         elif market.name == const.BITHUMB:
-            pass
+            json = self.thumb.new_buy_order(symbol=symbol, amount=amount)
+            print(json)
         raise HanpunError('not impl')
 
     def order_status(self, market, order_id):
