@@ -7,7 +7,7 @@ from hanpun.models.base import Base
 from hanpun.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
 from hanpun.models.ticker import CurrencySymbol
 
-engine = create_engine(config.DB_URL)
+engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
 
 db_session = scoped_session(sessionmaker(bind=engine))
 

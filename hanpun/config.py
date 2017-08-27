@@ -1,0 +1,45 @@
+import os
+
+SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI',
+                                         'postgresql://baleen37:@localhost:5432/baleen37')
+CELERY_BROKER_URI = 'redis://localhost:6379/1'
+
+
+class BITFINEX:
+    API_KEY = 'Wqa5irqafmIg94Fey27nA3VICpbM5rLHSXPA5zyd60k'
+    SECRET_API_KEY = os.environ.get('BITFINEX_SECRET_API_KEY')
+
+    XRP_ADDRESS = 'rLW9gnQo7BQhU6igk5keqYnH3TVrCxGRzm'
+    XRP_DESTINATION_TAG = '4171450580'
+
+
+class COINONE:
+    API_KEY = '1547d791-b2b5-490d-b032-c150c3bc0a66'
+    SECRET_API_KEY = os.environ.get('COINONE_SECRET_API_KEY')
+
+    XRP_ADDRESS = 'rp2diYfVtpbgEMyaoWnuaWgFCAkqCAEg28'
+    XRP_DESTINATION_TAG = '974316854'
+
+
+class BITHUMB:
+    API_KEY = '85b07cda1d52f51a4e0bf65f570ed5b9'
+    SECRET_API_KEY = os.environ.get('BITHUMB_SECRET_API_KEY')
+
+    XRP_ADDRESS = 'rsG1sNifXJxGS2nDQ9zHyoe1S5APrtwpjV'
+    XRP_DESTINATION_TAG = '1000875614'
+
+
+class POLONIEX:
+    API_KEY = '5G6NZSLC-YPD8J2GV-WVMCWN1K-Z9FH2WCX'
+    SECRET_API_KEY = os.environ.get('POLONIEX_SECRET_API_KEY')
+
+    XRP_ADDRESS = 'rsG1sNifXJxGS2nDQ9zHyoe1S5APrtwpjV'
+    XRP_DESTINATION_TAG = '1000875614'
+
+
+class BITTREX:
+    API_KEY = '792ce27499184151ab4e2e4d72f9661a'
+    SECRET_API_KEY = os.environ.get('BITTREX_SECRET_API_KEY')
+
+    XRP_ADDRESS = 'rPVMhWBsfF9iMXYj3aAzJVkPDTFNSyWdKy'
+    XRP_DESTINATION_TAG = '171030485'
