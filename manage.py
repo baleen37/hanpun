@@ -1,3 +1,5 @@
+import unittest
+
 from manager import Manager
 
 from hanpun import storage
@@ -24,6 +26,12 @@ def drop_db():
 def reset_db():
     storage.drop_db()
     storage.init_db()
+
+
+@manage.command
+def test():
+    testsuite = unittest.TestLoader().discover('.', pattern='test_*.py')
+    unittest.TextTestRunner().run(testsuite)
 
 
 if __name__ == '__main__':
