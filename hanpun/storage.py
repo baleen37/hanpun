@@ -2,12 +2,13 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from hanpun import config, const
+from hanpun.config import Config
 from hanpun.controller.market import MarketController
 from hanpun.models.base import Base
 from hanpun.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
 from hanpun.models.ticker import CurrencySymbol
 
-engine = create_engine(config.DB_URL)
+engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 
 db_session = scoped_session(sessionmaker(bind=engine))
 

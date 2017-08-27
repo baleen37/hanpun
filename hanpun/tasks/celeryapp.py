@@ -13,7 +13,6 @@ app.conf.timezone = 'UTC'
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kw):
-    from hanpun.tasks import command
     from hanpun.tasks import fetch_ticker
     # sender.add_periodic_task(crontab(minute=20), video.update_all_video.s(), name='every 10 sec product')
     sender.add_periodic_task(1, fetch_ticker.tick_bithumb.s())
