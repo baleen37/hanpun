@@ -1,0 +1,1 @@
+from hanpun.tasks import fetch_ticker

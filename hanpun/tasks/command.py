@@ -4,6 +4,7 @@ import time
 
 from hanpun import const
 from hanpun.controller.market import MarketController
+from hanpun.controller.ticker import TickerController
 from hanpun.controller.trade import TradeController, OrderStatus
 from hanpun.exc import HanpunError
 from hanpun.models.exchange import TradeFee, WithdrawalFee, ExchangeMarket
@@ -62,17 +63,18 @@ def calc():
     low_ask_ticker = None
     high_bid_ticker = None
     for ticker in market_last_tickers:
-        low_ask_ticker = ticker if low_ask_ticker is None or ticker.last_price < low_ask_ticker.last_price else low_ask_ticker
-        high_bid_ticker = ticker if high_bid_ticker is None or ticker.last_price > high_bid_ticker.last_price else high_bid_ticker
+        low_ask_ticker = ticker if low_ask_ticker is None or ticker.ask < low_ask_ticker.ask else low_ask_ticker
+        high_bid_ticker = ticker if high_bid_ticker is None or ticker.bid > high_bid_ticker.bid else high_bid_ticker
 
     balance_amount = tc.balance(low_ask_ticker.exchange_market, CurrencySymbol.USD)
     assert balance_amount > 0, 'balances에 돈이 없다 ㅠ'
 
-    cost_of_buy = round(low_ask_ticker.last_price * 1000) / 1000
-    buyable_amount = balance_amount / cost_of_buy
+    cost_of_buy = round(low_ask_ticker.ask * 1000000) / 1000000
+    buyable_amount = balance_amount / cost_of_buy - 0.1
     print(f'---------------------------------------------------------------------------')
-    print(f'low_ticker {low_ask_ticker.last_price} {low_ask_ticker.exchange_market.name}')
-    print(f'high_ticker {high_bid_ticker.last_price} {high_bid_ticker.exchange_market.name}')
+    print(f'low_ticker {low_ask_ticker.ask} {low_ask_ticker.exchange_market.name}')
+    print(f'high_ticker {high_bid_ticker.bid} {high_bid_ticker.exchange_market.name}')
+
     profit_per_unit = high_bid_ticker.bid - low_ask_ticker.ask
     print(f'profit_per_unit {profit_per_unit} {profit_per_unit / cost_of_buy * 100}% ')
     print(f'buy_available_amount {buyable_amount} balance_amount {balance_amount} ')
@@ -95,14 +97,16 @@ def calc():
     print(f'estimated profit amount : ${estimated_profit_price} used_money : ${used_money}')
     print(f'profit_per {estimated_profit_price / used_money}%')
 
-    # assert estimated_profit_price > 0, '이득이 마이너스는 아니여야잖아'
+    assert estimated_profit_price > 0, '이득이 마이너스는 아니여야잖아'
 
     try:
         # 어마운트를 1로 조정
         exchange_market = low_ask_ticker.exchange_market
-        order_id = tc.exchange_buy(exchange_market, symbol=low_ask_ticker.symbol, amount=buyable_amount,
+        order_id = tc.exchange_buy(exchange_market,
+                                   symbol=low_ask_ticker.symbol,
+                                   amount=buyable_amount,
                                    price=cost_of_buy)
-        for idx in range(10):
+        for idx in range(30):
             order_status = tc.order_status(exchange_market, order_id)
             print(f'order_status {order_status}')
             if order_status == OrderStatus.SUCCESS:
@@ -111,7 +115,11 @@ def calc():
                 withdraw(
                     symbol=low_ask_ticker.symbol,
                     amount=balance_amount,
-                    to_market=high_bid_ticker.exchange_market, from_market=low_ask_ticker.exchange_market)
+                    to_market=high_bid_ticker.exchange_market,
+                    from_market=low_ask_ticker.exchange_market)
+
+                check_deposit(low_ask_ticker.symbol,
+                              high_bid_ticker.exchange_market)
                 break
             if order_status == OrderStatus.IS_CANCELLED:
                 raise HanpunError('OrderStatus.IS_CANCELLED')
@@ -125,11 +133,37 @@ def calc():
 
 
 def withdraw(symbol: CurrencySymbol, amount, from_market, to_market):
-    amount = 1
     tc = TradeController(db_session=db_session)
     tc.withdraw(symbol=symbol, amount=amount, from_market=from_market, to_market=to_market)
     print(f'symbol {symbol}, amount {amount}, from_market {from_market} to_market {to_market}')
 
 
+def check_deposit(symbol: CurrencySymbol, to_market: ExchangeMarket):
+    print(f'check_deposit {symbol.name} {to_market.name}')
+    tc = TradeController(db_session=db_session)
+    pre_res = None
+    while True:
+        res = tc.deposit_history(to_market, symbol)
+        if pre_res and res != pre_res:
+            print('success')
+
+        print(f'res : {res}')
+        pre_res = res
+        time.sleep(1)
+
+
+def sell_all_amount(symbol: CurrencySymbol, market: ExchangeMarket):
+    tc = TradeController(db_session=db_session)
+    tkc = TickerController(db_session)
+    amount = tc.balance(market=market, symbol=symbol)
+    print(amount)
+    price = tkc.last_ticker(market_id=market.id, symbol=symbol).bid
+    print(price)
+    res = tc.exchange_sell(market=market, symbol=symbol, amount=amount, price=price)
+    print(res)
+
+
 if __name__ == '__main__':
-    calc()
+    # calc()
+    # check_deposit(CurrencySymbol.XRP, to_market=MarketController(db_session=db_session).get_market(const.BITHUMB))
+    sell_all_amount(CurrencySymbol.XRP, market=MarketController(db_session=db_session).get_market(const.BITHUMB))

@@ -14,7 +14,7 @@ PROTOCOL = 'https'
 HOST = 'api.coinone.co.kr'
 
 
-class Client:
+class CoinoneApi:
     def __init__(self, key, secret):
         assert key
         assert secret
@@ -61,6 +61,6 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(key=config.COINONE.API_KEY, secret=config.COINONE.SECRET_API_KEY)
+    client = CoinoneApi(key=config.COINONE.API_KEY, secret=config.COINONE.SECRET_API_KEY)
     # pprint.pprint(client.balances())
     pprint.pprint(client.limit_orders('btc'))

@@ -23,7 +23,7 @@ class Symbol:
     ETH = 'ethusd'
 
 
-class Client:
+class BitfinexApi:
     def __init__(self, key, secret):
         self.URL = f'{PROTOCOL}://{HOST}/{VERSION}'
         self.KEY = key
@@ -171,8 +171,9 @@ class Client:
 
         return json_resp
 
-    def ticker(self, currency):
-        assert currency
+    def ticker(self, symbol: CurrencySymbol):
+        assert symbol
+        currency =symbol.name + 'usd'
 
         r = requests.get(f'{self.URL}/pubticker/{currency}', verify=True, timeout=10)
         json_resp = r.json()
@@ -196,7 +197,7 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client(key=config.BITFINEX.API_KEY, secret=config.BITFINEX.SECRET_API_KEY)
+    client = BitfinexApi(key=config.BITFINEX.API_KEY, secret=config.BITFINEX.SECRET_API_KEY)
     # pprint.pprint(client.ticker('xrpusd'))
     # pprint.pprint(client.balances())
     # pprint.pprint(client.cancel_all_orders())

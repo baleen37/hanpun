@@ -1,59 +1,53 @@
-import datetime
-import time
-
 from hanpun import config, const
-from hanpun.client.bithumb import Client as BithumbClient
-from hanpun.client.bitfinex import Client as BitfinexClient
-from hanpun.client.yahoo import YahooClient
-from hanpun.models.exchange import ExchangeMarket
-from hanpun.models.ticker import Ticker, CurrencySymbol
+from hanpun.api.bitfinex import BitfinexApi
+from hanpun.api.bithumb import BithumbApi
+from hanpun.api.yahoo import YahooApi
+from hanpun.controller.market import MarketController
+from hanpun.controller.ticker import TickerController
+from hanpun.models.ticker import CurrencySymbol
 from hanpun.storage import db_session
+from hanpun.tasks.celeryapp import app
 
 
-def bitfinex_ticker():
-    bitfinex = BitfinexClient(key=config.BITFINEX.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
-    json = bitfinex.ticker('xrpusd')
+@app.task
+def tick_bitfinex():
+    try:
+        symbol = CurrencySymbol.XRP
+        bitfinex = BitfinexApi(key=config.BITFINEX.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
+        json = bitfinex.ticker(symbol)
 
-    market = (db_session.query(ExchangeMarket)
-              .filter(ExchangeMarket.name == const.BITFINEX)
-              .first())
-    ticker = Ticker(
-        exchange_market=market,
-        symbol=CurrencySymbol.XRP,
-        bid=json['bid'],
-        ask=json['ask'],
-        last_price=json['last_price']
-    )
-    db_session.add(ticker)
-    db_session.commit()
+        bid = json['bid']
+        ask = json['ask']
+        last_price = json['last_price']
 
+        market = MarketController(db_session).get_market(const.BITFINEX)
+        ticker = TickerController(db_session).create_ticker(market=market, symbol=symbol, bid=bid, ask=ask,
+                                                            last_price=last_price)
+        db_session.commit()
 
-def bithumb_ticker():
-    bithumb = BithumbClient(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
-    json = bithumb.ticker(CurrencySymbol.XRP)
-    market = (db_session.query(ExchangeMarket)
-              .filter(ExchangeMarket.name == const.BITHUMB)
-              .first())
-    ticker = Ticker(
-        exchange_market=market,
-        symbol=CurrencySymbol.XRP,
-        bid=float(json['data']['buy_price']) / YahooClient.usd_krw_exchange_rate(),
-        ask=float(json['data']['sell_price']) / YahooClient.usd_krw_exchange_rate(),
-        last_price=float(json['data']['closing_price']) / YahooClient.usd_krw_exchange_rate()
-    )
-    db_session.add(ticker)
-    db_session.commit()
+        return f'ticker: last_price {ticker.last_price}'
+    except Exception as e:
+        print(json)
+        raise e
 
 
-if __name__ == '__main__':
-    while True:
-        print(f'tick... {datetime.datetime.now()}')
-        try:
-            bithumb_ticker()
-        except Exception as e:
-            print(e)
-        try:
-            bitfinex_ticker()
-        except Exception as e:
-            print(e)
-        time.sleep(0.2)
+@app.task
+def tick_bithumb():
+    try:
+        bithumb = BithumbApi(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
+        symbol = CurrencySymbol.XRP
+
+        json = bithumb.ticker(symbol)
+        market = MarketController(db_session).get_market(const.BITHUMB)
+
+        bid = float(json['data']['buy_price']) / YahooApi.usd_krw_exchange_rate()
+        ask = float(json['data']['sell_price']) / YahooApi.usd_krw_exchange_rate()
+        last_price = float(json['data']['closing_price']) / YahooApi.usd_krw_exchange_rate()
+
+        ticker = TickerController(db_session).create_ticker(market=market, symbol=symbol, bid=bid, ask=ask,
+                                                            last_price=last_price)
+        db_session.commit()
+        return f'ticker: last_price {ticker.last_price}'
+    except Exception as e:
+        print(json)
+        raise e

@@ -1,4 +1,5 @@
 import base64
+import enum
 import hashlib
 import hmac
 import math
@@ -15,7 +16,17 @@ PROTOCOL = 'https'
 HOST = 'api.bithumb.com'
 
 
-class Client:
+class TransactionSearchType(enum.Enum):
+    ALL = 0
+    BUY = 1
+    SELL = 2
+    WITHDRAWING = 3
+    DEPOSIT = 4
+    WITHDRAWAL = 5
+    KRW_DEPOSITING = 9
+
+
+class BithumbApi:
     def __init__(self, key, secret):
         assert key
         assert secret
@@ -53,6 +64,7 @@ class Client:
         endpoint = '/info/balance'
         payload = {
             "endpoint": endpoint,
+            'currency': 'ALL'
         }
 
         url = self.URL + endpoint
@@ -100,7 +112,11 @@ class Client:
 
         url = self.URL + endpoint
         r = requests.post(url, data=payload, headers=self._sign_payload(payload))
-        return r.json()['order_id']
+        try:
+            return r.json()['order_id']
+        except Exception as e:
+            print(f'json : {r.json()}')
+            raise e
 
     def new_buy_order(self, symbol: CurrencySymbol, amount):
         """
@@ -195,14 +211,35 @@ class Client:
         # TODO : 주문이 끝났는지 확인
         pass
 
+    def user_transactions(self, symbol: CurrencySymbol,
+                          search: TransactionSearchType = TransactionSearchType.ALL):
+        """
+        :param symbol:
+        :param search: 0 : 전체, 1 : 구매완료, 2 : 판매완료, 3 : 출금중, 4 : 입금, 5 : 출금, 9 : KRW입금중
+        :return:
+        """
+        assert isinstance(symbol, CurrencySymbol)
+
+        endpoint = f'/info/user_transactions'
+        payload = {
+            "endpoint": endpoint,
+            'currency': symbol.name,
+            'search': search.value
+        }
+
+        url = self.URL + endpoint
+        r = requests.post(url, data=payload, headers=self._sign_payload(payload))
+        return r.json()
+
 
 if __name__ == '__main__':
-    client = Client(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
+    client = BithumbApi(key=config.BITHUMB.API_KEY, secret=config.BITHUMB.SECRET_API_KEY)
     # pprint.pprint(client.balances())
     # pprint.pprint(client.new_buy_order(symbol=CurrencySymbol.XRP, amount=10))
-    pprint.pprint(client.new_sell_order(symbol=CurrencySymbol.XRP, amount=10.0))
+    # pprint.pprint(client.new_sell_order(symbol=CurrencySymbol.XRP, amount=10.0))
     # pprint.pprint(client.orders(symbol=CurrencySymbol.XRP))
     # pprint.pprint(client.cancel_order(symbol=CurrencySymbol.XRP, order_id='1503070938067', trade_type='bid'))
     # pprint.pprint(client.cancel_all_orders(symbol=CurrencySymbol.XRP))
     # pprint.pprint(client.withdraw(symbol=CurrencySymbol.XRP, amount=21, address=config.BITFINEX.XRP_ADDRESS,
     #                               destination=config.BITFINEX.XRP_DESTINATION_TAG))
+    pprint.pprint(client.user_transactions(CurrencySymbol.XRP, search=TransactionSearchType.DEPOSIT))

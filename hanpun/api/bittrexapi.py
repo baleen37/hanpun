@@ -12,7 +12,7 @@ PROTOCOL = 'https'
 HOST = 'bittrex.com/api/v1.1'
 
 
-class Bittrex:
+class BittrexApi:
     def __init__(self, key, secret):
         self.URL = f'{PROTOCOL}://{HOST}'
         self.KEY = key
@@ -51,5 +51,5 @@ class Bittrex:
 
 
 if __name__ == '__main__':
-    bittrex = Bittrex(config.BITTREX.API_KEY, config.BITTREX.SECRET_API_KEY)
+    bittrex = BittrexApi(config.BITTREX.API_KEY, config.BITTREX.SECRET_API_KEY)
     pprint.pprint(bittrex.get_ticker('USDT-XRP'))

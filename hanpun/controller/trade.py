@@ -3,11 +3,11 @@ import enum
 from sqlalchemy.orm.scoping import ScopedSession
 
 from hanpun import config, const
-from hanpun.client import bitfinex, bithumb
-from hanpun.client.yahoo import YahooClient
+from hanpun.api.bitfinex import BitfinexApi
+from hanpun.api.bithumb import BithumbApi
 from hanpun.controller.base import BaseController
 from hanpun.exc import HanpunError
-from hanpun.models.exchange import ExchangeMarket
+from hanpun.models.exchange import ExchangeMarket, ExchangeMarketBalance
 from hanpun.models.ticker import CurrencySymbol
 
 
@@ -21,8 +21,8 @@ class OrderStatus(enum.Enum):
 class TradeController(BaseController):
     def __init__(self, db_session: ScopedSession):
         super().__init__(db_session)
-        self.finex = bitfinex.Client(config.BITFINEX.API_KEY, config.BITFINEX.SECRET_API_KEY)
-        self.thumb = bithumb.Client(config.BITHUMB.API_KEY, config.BITHUMB.SECRET_API_KEY)
+        self.finex = BitfinexApi(config.BITFINEX.API_KEY, config.BITFINEX.SECRET_API_KEY)
+        self.thumb = BithumbApi(config.BITHUMB.API_KEY, config.BITHUMB.SECRET_API_KEY)
 
     def balance(self, market, symbol: CurrencySymbol):
         """get my balance
@@ -39,8 +39,11 @@ class TradeController(BaseController):
         elif market.name == const.BITHUMB:
             json = self.thumb.balances()
             data = json['data']
+            print(data)
             if symbol == CurrencySymbol.USD:
                 return float(data['total_krw']) / YahooClient.usd_krw_exchange_rate()
+            if symbol == CurrencySymbol.XRP:
+                return float(data['available_xrp'])
             else:
                 raise NotImplementedError()
         return 0
@@ -57,7 +60,8 @@ class TradeController(BaseController):
             json = self.finex.place_order(amount=amount, price=price, side='sell', symbol=symbol.value + 'usd')
             return json
         elif market.name == const.BITHUMB:
-            pass
+            json = self.thumb.new_sell_order(symbol=symbol, amount=amount)
+            return json
         raise HanpunError('not impl')
 
     def exchange_buy(self, market, symbol: CurrencySymbol, amount, price):
@@ -93,7 +97,7 @@ class TradeController(BaseController):
         assert all([symbol, from_market, to_market])
         assert amount > 0
 
-        to_balance = to_market.balances.filter(ExchangeMarket.symbol == symbol).first()
+        to_balance = to_market.balances.filter(ExchangeMarketBalance.symbol == symbol).first()
         assert to_balance, '계좌가 없습니다.'
 
         if from_market.name == const.BITFINEX:
@@ -102,3 +106,11 @@ class TradeController(BaseController):
             return json
 
         raise HanpunError('not impl')
+
+    def deposit_history(self, market: ExchangeMarket, symbol: CurrencySymbol):
+        assert market
+        assert symbol
+
+        if market.name == const.BITHUMB:
+            res = self.thumb.user_transactions(symbol=symbol, search=TransactionSearchType.DEPOSIT)
+            return res
