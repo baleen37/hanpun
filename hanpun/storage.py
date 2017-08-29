@@ -3,33 +3,25 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from hanpun import config, const
 from hanpun.controller.market import MarketController
+from hanpun.models import ExchangeMarketBalance, ExchangeMarket, WithdrawalFee, CurrencySymbol, TradeFee
 from hanpun.models.base import Base
-from hanpun.models.exchange import ExchangeMarket, WithdrawalFee, ExchangeMarketBalance, TradeFee
-from hanpun.models.ticker import CurrencySymbol
 
 engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
+engine.echo = config.DB_ECHO
 
 db_session = scoped_session(sessionmaker(bind=engine))
 
 
-def import_modules():
-    import importlib
-    from hanpun import models
-    for m in models.__all__:
-        importlib.import_module('hanpun.models.' + m, __name__)
-        print(m)
-
-
 def init_db():
-    import_modules()
     Base.metadata.bind = engine
     Base.metadata.create_all(engine)
 
 
 def drop_db():
-    import_modules()
     Base.metadata.bind = engine
+    db_session.commit()
     Base.metadata.drop_all(engine)
+
 
 
 def exchange_market_initial(*args, **kwargs):
@@ -53,9 +45,7 @@ def withdraw_fee_initial(*args, **kwargs):
 
     # bitfinex
     bitfinex = mc.get_market(const.BITFINEX)
-    bitfinex.withdrawal_fees.append(WithdrawalFee(
-        symbol=CurrencySymbol.XRP,
-        fee=0.01,
+    bitfinex.withdrawal_fees.append(WithdrawalFee( symbol=CurrencySymbol.XRP, fee=0.01,
         min_amount=20,
     ))
     db_session.add(bithumb)

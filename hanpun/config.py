@@ -4,6 +4,8 @@ SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URI',
                                          'postgresql://baleen37:@localhost:5432/baleen37')
 CELERY_BROKER_URI = 'redis://localhost:6379/1'
 
+DB_ECHO = True
+
 
 class BITFINEX:
     API_KEY = 'Wqa5irqafmIg94Fey27nA3VICpbM5rLHSXPA5zyd60k'
